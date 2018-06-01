@@ -1,0 +1,84 @@
+.main-pg{
+    background-color: #18191c;
+}
+.col-centered{
+    float: none;
+    margin: 0 auto;
+}
+.container-add{
+    width:1260px;
+    padding:8px;
+}
+.link-nav{
+    color: hsla(0,0%,100%,.6);
+    font-weight: 400;
+    position: relative;
+    text-decoration: none;
+    font-size:14px;
+}
+.link-nav:hover{
+    color: #fff;
+    background-color: transparent;
+}
+.front-box{
+    width: 600px;
+    margin: 6% auto;
+    height: 100px;
+    color: white;
+}
+.btn-bg-white{
+    background: white;
+    color:#18191c;
+    transition: all .35s cubic-bezier(.25,.25,.315,1.35);
+}
+.btn-bg-white:hover{
+    box-shadow: none;
+    transform: translateY(5);
+}
+.link-active{
+    color:#fff;
+}
+.btn-bg-white:active{
+    background: #eeee;
+}
+.btn-bg-build{
+    background: #337ab7;
+    color:#ffff;
+    transition: all .35s cubic-bezier(.25,.25,.315,1.35);
+}
+.btn-bg-build:hover{
+    box-shadow: none;
+    transform: translateY(5);
+}
+.btn-bg-build:active{
+    background: #337ab7;
+}
+.btn-bg-trans{
+    background-color: #18191c;
+    
+}
+.btn-bg-trans:hover{
+    background-color: #18191c;
+}
+.btn-main-pg-font{
+    font-size: 15px;
+}
+.box-main-pg{
+    box-sizing: border-box;
+    width: 100%;
+    padding: 50px 50px 0;
+    margin: 0;
+     
+}
+.h1-main-pg{
+    color: #fff;
+    font-weight: 100;
+    text-align: center;
+}
+.sub-par-main-pg{
+    color: hsla(0,0%,100%,.6);
+    margin-bottom: 40px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 400;
+}
