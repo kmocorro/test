@@ -1,12 +1,16 @@
 let jwt = require('jsonwebtoken');
-let {OAuth2Client} = require('google-auth-library');
-let CLIENT_ID = "120644413442-6km9fnqj8ttublf2392d3nenf5ls7voq.apps.googleusercontent.com";
-let client = new OAuth2Client(CLIENT_ID);
 let bodyParser = require('body-parser');
 let config = require('./config');
 let formidable = require('formidable');
 let postgresql = require('../db/dbConfig');
 let bcrypt = require('bcryptjs');
+
+let nodemailer = require('nodemailer');
+let mail = require('../mail/config');
+
+let {OAuth2Client} = require('google-auth-library');
+let CLIENT_ID = "120644413442-6km9fnqj8ttublf2392d3nenf5ls7voq.apps.googleusercontent.com";
+let client = new OAuth2Client(CLIENT_ID);
 
 let verifyToken = require('./verifyToken');
 
@@ -14,6 +18,9 @@ module.exports = function(app){
 
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
+
+    /** Nodemailer transporter */
+    let transporter = nodemailer.createTransport(mail.poolConfig);
 
     /**
      * GET | app login page.
@@ -92,7 +99,7 @@ module.exports = function(app){
                                 }
 
                             } else {
-                                res.send({err: 'Invalid email or not yet existed.'})
+                                res.send({err: 'Password does not match the email or the account does not exist.' });
                             }
                         } else {
 
@@ -122,11 +129,28 @@ module.exports = function(app){
 
                 let hashedBrown = bcrypt.hashSync(form_register_details.password);
 
-                let insert_form_register_details = {
+                /** QUERY INSERT TO POSTGRESQL */
+                let insert_form_register_details = { 
                     text: 'INSERT INTO app_manual_signin (email, signin, name, givenname, lastname, encrypted_pw) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
                     values: [form_register_details.email, new Date(), form_register_details.firstname + ' ' + form_register_details.lastname, form_register_details.firstname, form_register_details.lastname, hashedBrown]
                 }
-                
+
+                let token = jwt.sign({ id: form_register_details.email }, config.secret, { expiresIn: 360 });
+
+                /** SETUP MAIL */
+                let mailOptions = {
+                    from: '"PCBuilderApp" <admin@pcbuilder.app>', //sender
+                    to: form_register_details.email,
+                    subject: 'Verify Email Address for PCBuilderApp',
+                    html: '<p>Hey ' + form_register_details.firstname + ', <br><br> Thanks for registering for an account on PCBuilderApp! <br>Before we get started, we just need to confirm that this is you. <br><br>Click below to verify your email address: <br><br><a href="http://localhost:7007/verifysignup?token=' + token + '">http://localhost:7007/verifysignup?token=' + token + '</a>. <br><br> Have fun PC Builders! </p>'
+                };
+
+                transporter.sendMail(mailOptions, function(error, info){
+                    if(error){ return console.log(error)};
+                    console.log('Message sent: ' + info.response);
+                });
+
+                /**
                 postgresql.pool.query(insert_form_register_details, function(err, results){ // single transaction
                     if(err){ return res.send({err: 'Error occured while connecting to database.'})};
                     
@@ -141,6 +165,7 @@ module.exports = function(app){
                     }
 
                 });
+                */
 
             }
 
