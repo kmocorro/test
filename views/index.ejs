@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-signin-client_id" content="120644413442-6km9fnqj8ttublf2392d3nenf5ls7voq.apps.googleusercontent.com">
     <title>PCBuilderApp - Building PC, Simplified. </title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
@@ -49,14 +50,14 @@
                                 <a href="/about"><span class="link-nav">About</span></a>
                             </li>
                             <li>
-                                <a href="/privacy-policy"><span class="link-nav">Privacy</span></a>
+                                <a href="/privacy"><span class="link-nav">Privacy</span></a>
                             </li>
                         </ul>
                     </div>
                     <div class="navbar-custom-menu">
                         <ul class="nav navbar-nav">
                             <li>
-                                <a href="/login"><span class="link-nav">Login</span></a>
+                                <a href="/logout" onclick="signOut();">Logout</a>
                             </li>
                         </ul>
                     </div>
@@ -90,7 +91,20 @@
         </section>
     </div>
     
-
+<script>
+    function signOut() {
+        var auth2 = gapi.auth2.getAuthInstance();
+        auth2.signOut().then(function () {
+            window.location.href = "/logout"
+        });
+    }
+    function onLoad() {
+        gapi.load('auth2', function() {
+            gapi.auth2.init();
+        });
+    }
+</script>
+<script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
 <!-- jQuery 3 -->
 <script src="./adminlte/bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->

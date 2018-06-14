@@ -1,4 +1,5 @@
 let bodyParser = require('body-parser');
+let verifyToken = require('../auth/verifyToken');
 
 module.exports = function(app){
 
@@ -10,8 +11,20 @@ module.exports = function(app){
         /**
          * GET | app render index page.
          */
-        app.get('/', function(req, res){
-            res.render('index');
+        app.get('/', verifyToken, function(req, res){
+            res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+            res.header('Expires', '-1');
+            res.header('Pragma', 'no-cache');
+
+            if(req.userID){
+
+                res.render('index');
+
+            } else {
+
+                res.render('signin');
+            }
+
         });
 
         /**
@@ -25,14 +38,30 @@ module.exports = function(app){
          * GET | app build guide page.
          */
         app.get('/guide', function(req, res){
-            res.render('build_guide');
+            res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+            res.header('Expires', '-1');
+            res.header('Pragma', 'no-cache');
+
+            res.send('hey. this is secured. Welcome!');
+            
         });
 
         /**
          * GET | app build pc page.
          */
-        app.get('/setup', function(req, res){
-            res.render('build_pc');
+        app.get('/setup', verifyToken, function(req, res){
+            res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+            res.header('Expires', '-1');
+            res.header('Pragma', 'no-cache');
+
+            if(req.claim){
+
+                res.send('hey. this is secured. Welcome ' + req.claim.given_name + '!' );
+ 
+            } else {
+                
+                res.render('setup');
+            }
         });
 
         /**
@@ -52,7 +81,7 @@ module.exports = function(app){
         /**
          * GET | app privacy policy page.
          */
-        app.get('/privacy-policy', function(req, res){
+        app.get('/privacy', function(req, res){
             res.render('privacy');
         });
 
@@ -64,20 +93,27 @@ module.exports = function(app){
         });
 
         /**
-         * GET | app login page.
+         * GET | app register page.
          */
-        app.get('/login', function(req, res){
-            res.render('login');
+        app.get('/signup', function(req, res){
+            res.render('signup');
         });
 
         /**
-         * GET | app register page.
+         * GET | app sign in page
          */
-        app.get('/register', function(req, res){
-            res.render('register');
+        app.get('/signin', function(req, res){
+            res.render('signin');
+        });
+
+        /**
+         * GET | app forgot password
+         */
+        app.get('/forgotpassword', function(req, res){
+            res.render('forgotpassword');
         });
 
     /** END of GET APIs */
 
-
+    
 }

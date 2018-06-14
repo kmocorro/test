@@ -1,5 +1,57 @@
 .main-pg{
-    background-color: #18191c;
+    background-color: #263238;
+}
+.about-pg{
+    background-color: #263238;
+}
+.priv-pg{
+    background-color: #263238;
+}
+.signin-pg{
+    /*background-color: #004973;*/
+    background-color: #fff;
+}
+.signup-form{
+    width: 100%;
+    position: relative;
+    bottom: initial;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 10%;
+}
+.hr-style{
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid rgb(162, 162, 162);
+    margin: 1em 0;
+    padding: 0; 
+}
+.signup-header{
+    color:#c7ccd1;
+}
+.signup-sub-link{
+    color:#c7ccd1;
+}
+.signup-or{
+    color:#c7ccd1;
+}
+.responseDivErr{
+    width: 100%;
+    padding: 20px;
+    background-color: orangered;
+    color: white;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.responseDivSuccess{
+    width: 100%;
+    padding: 20px;
+    background-color: lightgreen;
+    color: white;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 .col-centered{
     float: none;
@@ -77,6 +129,7 @@
     color: #fff;
     font-weight: 100;
     text-align: center;
+    padding-top: 50px;
 }
 .sub-par-main-pg{
     color: hsla(0,0%,100%,.6);
@@ -108,7 +161,7 @@
 .box-priv-pg{
     box-sizing: border-box;
     width: 100%;
-    padding: 100px 0 170px;
+    padding: 100px 0 220px;
 }
 .box-priv-content-pg{
     color: #9099a4;
@@ -117,7 +170,7 @@
     font-size: 18px;
     font-weight: inherit;
     line-height: 1.6666666666666667;
-    margin-top: 20px;
+    margin: 80px 0;
 }
 .h1-priv-pg{
     color: #fff;
@@ -147,6 +200,15 @@
     font-weight: inherit;
     line-height: 1.6666666666666667;
     margin-top: 20px;
+}
+.sub-date-priv-pg{
+    color: #9099a4;
+    display: block;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: inherit;
+    line-height: 1.6666666666666667;
+    margin-left: 3px;
 }
 .other-info-ul{
     margin: 10px 0 0 15px;
