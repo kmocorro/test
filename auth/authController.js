@@ -137,7 +137,7 @@ module.exports = function(app){
                     password : hashedBrown
                 }
 
-                let token = jwt.sign({ id: payload.id, claim: payload }, config.secret, { expiresIn: 3600 });
+                let token = jwt.sign({ id: payload.id, claim: payload }, config.secret, { expiresIn: 60 });
 
                 /** SETUP MAIL */
                 let mailOptions = {
@@ -205,17 +205,20 @@ module.exports = function(app){
                 //console.log(verifiedClaim);
 
                 if(verifiedClaim){
+                    console.log(verifiedClaim);
 
                     /** QUERY INSERT TO POSTGRESQL */
                     let insert_form_register_details = { 
-                        text: 'INSERT INTO app_manual_signin (email, signin, name, givenname, lastname, encrypted_pw) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+                        text: 'INSERT INTO app_manual_signin (email, signin, name, given_name, lastname, encrypted_pw) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
                         values: [verifiedClaim.email, new Date(), verifiedClaim.firstname + ' ' + verifiedClaim.lastname, verifiedClaim.firstname, verifiedClaim.lastname, verifiedClaim.password] // password already encrypted here
                     }
 
                     postgresql.pool.query(insert_form_register_details, function(err, results){ // single transaction
-                        if(err){ return res.send({err: 'Error occured while connecting to database.'})};
+                        if(err){ return res.send({err: 'VerifySignup | Error occured while connecting to database. | ' + err  })};
                         
                         if(results.command == 'INSERT'){
+
+                            res.cookie()
 
                             let token = jwt.sign({ id: verifiedClaim.id, claim: verifiedClaim }, config.secret, { expiresIn: 86400 });
                             res.cookie('auth', token);
