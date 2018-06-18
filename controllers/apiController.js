@@ -16,9 +16,10 @@ module.exports = function(app){
             res.header('Expires', '-1');
             res.header('Pragma', 'no-cache');
 
-            if(req.userID){
+            if(req.userID && req.claim){
 
-                res.render('index');
+                res.render('index', {firstname: req.claim.firstname || req.claim.given_name});
+                console.log(req.claim);
 
             } else {
 
@@ -54,12 +55,14 @@ module.exports = function(app){
             res.header('Expires', '-1');
             res.header('Pragma', 'no-cache');
 
-            if(req.claim){
+            if(req.claim.firstname){
 
-                res.send('hey. this is secured. Welcome ' + req.claim.given_name + '!' );
+                res.send('hey. this is secured. Welcome ' + req.claim.firstname + '!' );
  
+            } else if(req.claim.given_name) {
+                res.send('hey. this is secured. Welcome ' + req.claim.given_name + '!' );
+            
             } else {
-                
                 res.render('setup');
             }
         });

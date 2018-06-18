@@ -4,6 +4,7 @@ let config = require('./config');
 let formidable = require('formidable');
 let postgresql = require('../db/dbConfig');
 let bcrypt = require('bcryptjs');
+let uuidv4 = require('uuid/v4');
 
 let nodemailer = require('nodemailer');
 let mail = require('../mail/config');
@@ -11,8 +12,6 @@ let mail = require('../mail/config');
 let {OAuth2Client} = require('google-auth-library');
 let CLIENT_ID = "120644413442-6km9fnqj8ttublf2392d3nenf5ls7voq.apps.googleusercontent.com";
 let client = new OAuth2Client(CLIENT_ID);
-
-let verifyToken = require('./verifyToken');
 
 module.exports = function(app){
 
@@ -92,7 +91,7 @@ module.exports = function(app){
 
                                 } else {
 
-                                    let token = jwt.sign({ id: results.rows[0].id }, config.secret, { expiresIn: 86400 });
+                                    let token = jwt.sign({ id: results.rows[0].id, claim: results.rows[0] }, config.secret, { expiresIn: 86400 });
                                     
                                     res.cookie('auth', token);
                                     res.status(200).send({ auth: 'Authenticated. Please wait...' });
@@ -126,23 +125,26 @@ module.exports = function(app){
             if(fields){
 
                 let form_register_details = fields;
+                console.log(form_register_details);
 
                 let hashedBrown = bcrypt.hashSync(form_register_details.password);
-
-                /** QUERY INSERT TO POSTGRESQL */
-                let insert_form_register_details = { 
-                    text: 'INSERT INTO app_manual_signin (email, signin, name, givenname, lastname, encrypted_pw) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-                    values: [form_register_details.email, new Date(), form_register_details.firstname + ' ' + form_register_details.lastname, form_register_details.firstname, form_register_details.lastname, hashedBrown]
+                
+                let payload = {
+                    id : uuidv4(),
+                    firstname : form_register_details.firstname,
+                    lastname : form_register_details.lastname,
+                    email : form_register_details.email,
+                    password : hashedBrown
                 }
 
-                let token = jwt.sign({ id: form_register_details.email }, config.secret, { expiresIn: 360 });
+                let token = jwt.sign({ id: payload.id, claim: payload }, config.secret, { expiresIn: 3600 });
 
                 /** SETUP MAIL */
                 let mailOptions = {
                     from: '"PCBuilderApp" <admin@pcbuilder.app>', //sender
                     to: form_register_details.email,
                     subject: 'Verify Email Address for PCBuilderApp',
-                    html: '<p>Hey ' + form_register_details.firstname + ', <br><br> Thanks for registering for an account on PCBuilderApp! <br>Before we get started, we just need to confirm that this is you. <br><br>Click below to verify your email address: <br><br><a href="http://localhost:7007/verifysignup?token=' + token + '">http://localhost:7007/verifysignup?token=' + token + '</a>. <br><br> Have fun PC Builders! </p>'
+                    html: '<p>Hey ' + form_register_details.firstname + ', <br><br> Thanks for registering for an account on PCBuilderApp! <br>Before we get started, we just need to confirm that this is you. <br><br>Click below to verify your email address: <br><br><a href="http://localhost:7007/verifysignup?token=' + token + '" target="_blank">http://localhost:7007/verifysignup?token=' + token + ' </a>. <br><br> Have fun PC Builders! </p>'
                 };
 
                 transporter.sendMail(mailOptions, function(error, info){
@@ -175,6 +177,73 @@ module.exports = function(app){
 
     app.post('/api/forgotpassword', function(req, res){
         console.log(req.body.email);
+    });
+
+    /** GET API for user verification signup link */
+    app.get('/verifysignup', function(req, res){
+
+        let clickVerificationLinkToken = req.query.token;
+
+        if(clickVerificationLinkToken){
+
+            function verifyLinkToken(){
+                return new Promise(function(resolve, reject){
+
+                    jwt.verify(clickVerificationLinkToken, config.secret, function(err, decoded){
+                        if(err) {return res.status(200).render('signin')};
+        
+                        let verifiedClaim = decoded.claim;
+                        
+                        resolve(verifiedClaim);
+                    });
+
+                });
+                
+            }
+
+            verifyLinkToken().then(function(verifiedClaim){
+                //console.log(verifiedClaim);
+
+                if(verifiedClaim){
+
+                    /** QUERY INSERT TO POSTGRESQL */
+                    let insert_form_register_details = { 
+                        text: 'INSERT INTO app_manual_signin (email, signin, name, givenname, lastname, encrypted_pw) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+                        values: [verifiedClaim.email, new Date(), verifiedClaim.firstname + ' ' + verifiedClaim.lastname, verifiedClaim.firstname, verifiedClaim.lastname, verifiedClaim.password] // password already encrypted here
+                    }
+
+                    postgresql.pool.query(insert_form_register_details, function(err, results){ // single transaction
+                        if(err){ return res.send({err: 'Error occured while connecting to database.'})};
+                        
+                        if(results.command == 'INSERT'){
+
+                            let token = jwt.sign({ id: verifiedClaim.id, claim: verifiedClaim }, config.secret, { expiresIn: 86400 });
+                            res.cookie('auth', token);
+                            res.redirect('/');
+
+                        } else {
+
+                            res.send({err: 'Error occured while inserting to database.' });
+
+                        }
+
+                    });
+
+                } else {
+                    res.send({err: 'Verification link already expired.'});
+                }
+                
+
+                
+            });
+
+
+        } else {
+            res.status(200).render('signin');
+        }
+
+        
+
     });
 
 

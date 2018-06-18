@@ -9,8 +9,10 @@ function verifyToken(req, res, next){
         if(err) return res.status(200).render('signin');
 
         req.userID = decoded.id;
+        req.claim = decoded.claim;
         next();
     });
+
 }
 
 module.exports = verifyToken;   

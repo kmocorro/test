@@ -1,5 +1,5 @@
 /node_modules
-cred*
+goog*
 /auth/c*
 db/c*
 /mail/c*
