@@ -19,7 +19,7 @@ module.exports = function(app){
             if(req.userID && req.claim){
 
                 res.render('index', {firstname: req.claim.firstname || req.claim.given_name});
-                console.log(req.claim);
+                //console.log(req.claim);
 
             } else {
 

@@ -62,11 +62,11 @@
                                             </div>
                                             <div class="form-group has-feedback">
                                                 <label>Email</label>
-                                                <input type="email" name="email" id="email" class="form-control" required placeholder="" onchange="document.getElementById('responseDiv').style.display = 'none';">
+                                                <input type="email" autocomplete="off" name="email" id="email" class="form-control" required placeholder="" onchange="document.getElementById('responseDiv').style.display = 'none';">
                                             </div>
                                             <div class="form-group has-feedback">
                                                 <label>Password</label>
-                                                <input type="password" name="password" id="password" class="form-control" required placeholder="" onchange="document.getElementById('responseDiv').style.display = 'none';">
+                                                <input type="password" autocomplete="off" name="password" id="password" class="form-control" required placeholder="" onchange="document.getElementById('responseDiv').style.display = 'none';">
                                             </div>
                                             <div class="row">
                                                 <div class="col-xs-12">
@@ -80,7 +80,7 @@
                                                     <a href="/" class="pull-right" style="padding-top:10px;">Cancel</a>
                                                 </div>
                                                 <div class="col-xs-4">
-                                                    <button type="submit" class="btn btn-primary btn-block btn-flat">Sign Up</button>
+                                                    <button type="submit" id="signupbutton" class="btn btn-primary btn-block btn-flat">Sign Up</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -96,7 +96,7 @@
 <script>
     window.addEventListener('load', function(){
 
-        function goLogin(){
+        function goSignUp(){
 
             let xhr = new XMLHttpRequest();
             let fd = new FormData(form); // bind form data object and form element
@@ -109,7 +109,8 @@
                     let responseDiv = document.getElementById('responseDiv');
                     
                     if(resFromServer.err){
-
+                        document.getElementById('signupbutton').removeAttribute("disabled");
+                        
                         if (responseDiv.classList) { 
                             responseDiv.classList.add("responseDivErr");
                             responseDiv.innerHTML = resFromServer.err
@@ -135,10 +136,7 @@
                             let hideDiv = document.getElementById('toHideIfSuccess');
                                 hideDiv.style.display = "none";
                                 
-                            setInterval(function(){
-                                window.location.href="/login";
-
-                            }, 3000);
+                            
                         } else {
                             // For IE9
                             var classes = responseDiv.className.split(" ");
@@ -153,10 +151,7 @@
                                 let hideDiv = document.getElementById('toHideIfSuccess');
                                 hideDiv.style.display = "none";
                                 
-                            setInterval(function(){
-                                window.location.href="/login";
-
-                            }, 3000);
+                            
                             }
                         }
                     }
@@ -180,8 +175,9 @@
         let form = document.getElementById('emailRegister');
         // take over submit event
         form.addEventListener('submit', function(event){
+            document.getElementById('signupbutton').setAttribute("disabled", "disabled");
             event.preventDefault();
-            goLogin();
+            goSignUp();
         });
 
 
