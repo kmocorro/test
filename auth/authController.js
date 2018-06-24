@@ -208,6 +208,7 @@ module.exports = function(app){
         let form = new formidable.IncomingForm();
 
         form.parse(req, function(err, fields){
+            if(err){ return res.send({err: 'Invalid submittion or incomplete. Please try again'})};
 
             if(fields.email){
 
@@ -233,7 +234,7 @@ module.exports = function(app){
                                 given_name: check_results.rows[0].given_name
                             }
 
-                            let token = jwt.sign({ id: payload.id, claim: payload }, config.secret, {expiresIn: 300});
+                            let token = jwt.sign({ id: payload.id, claim: payload }, config.secret, {expiresIn: 300}); // 5 mins
 
                             /** SETUP MAIL */ 
                             let mailOptions = {
@@ -268,6 +269,69 @@ module.exports = function(app){
 
     app.post('/api/resetpassword', function(req, res){
         
+        let form = new formidable.IncomingForm();
+
+        form.parse(req, function(err, fields){
+            if(err){ return res.send({err: 'Invalid form details. Please try again.'})};
+            
+            if(fields.resetToken && fields.newpassword && fields.reenterpassword){
+
+                if(fields.newpassword == fields.reenterpassword){
+
+                    //console.log(fields.resetToken);
+                    function resetLinkToken(){
+                        return new Promise(function(resolve, reject){
+        
+                            jwt.verify(fields.resetToken, config.secret, function(err, decoded){
+                                if(err) {return res.status(200).render('resettoken_expired')};
+                
+                                let resetClaim = decoded.claim;
+                                
+                                resolve(resetClaim);
+                            });
+        
+                        });
+                        
+                    }
+
+                    resetLinkToken().then(function(resetClaim){
+
+                        let newHashedBrown = bcrypt.hashSync(fields.newpassword); // fields password not resetClaim (there's none.)
+
+                        let update_query_password = {
+                            text: 'UPDATE app_manual_signin SET encrypted_pw = $1 WHERE id= $2 AND email= $3',
+                            values: [newHashedBrown, resetClaim.id, resetClaim.email]
+                        }
+
+                        postgresql.pool.query(update_query_password, function(err, update_results){
+                            if(err){ return res.send({err: 'Unable to proceed - ' + err})};
+
+                            if(update_results.rowCount == 1){
+                                //console.log(update_results);
+                                
+                                let token = jwt.sign({ id: resetClaim.id, claim: resetClaim }, config.secret, {expiresIn: 60}); // 1 min
+                                res.cookie('basicToken_cookie', token);
+
+                                res.status(200).send({success: 'Redirecting...', basicToken_cookie: true, token: token});
+                                
+                            } else {
+                                res.send({err: 'Unable to proceed. Please try again.'});
+                            }
+
+                        });
+
+                    });
+
+                } else {
+                    res.send({err: 'Password fields does not match. Try again.'});
+                }
+
+            } else {
+                res.send({err: 'Fields are incomplete. Try again.'});
+            }
+
+        });
+
     });
 
     /** GET API for user verification signup link */
@@ -364,11 +428,15 @@ module.exports = function(app){
 
     /** GET API for reset password */
     app.get('/reset', function(req, res){
+        res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+        res.header('Expires', '-1');
+        res.header('Pragma', 'no-cache');
 
         let clickResetLinkToken = req.query.token;
 
         if(clickResetLinkToken){
 
+            
             function verifyLinkToken(){
                 return new Promise(function(resolve, reject){
 
@@ -386,13 +454,36 @@ module.exports = function(app){
 
             verifyLinkToken().then(function(resetClaim){
 
-                res.render('resetpassword', { email: resetClaim.email });
+                
+                res.render('resetpassword', { hiddenToken: clickResetLinkToken });
+
 
             });
 
-
         }
 
+    });
+
+    /** GET API for reset password successfully */
+    app.get('/resetsuccessfully', function(req, res){
+        res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+        res.header('Expires', '-1');
+        res.header('Pragma', 'no-cache');
+        
+        let basicToken_cookie = req.cookies.basicToken_cookie;
+        if(!basicToken_cookie) { return res.status(200).render('signin') };
+        
+        jwt.verify(basicToken_cookie, config.secret, function(err, decoded){
+            if(err) return res.status(200).render('signin');
+    
+            let email = decoded.claim.email;
+            
+
+            res.cookie();
+
+            res.render('resettoken_success', {email});
+            
+        });
     });
 
 }
