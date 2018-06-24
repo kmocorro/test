@@ -246,11 +246,15 @@ module.exports = function(app){
 
                             transporter.sendMail(mailOptions, function(error, info){
                                 if(error){ return res.send({err: '<center>Oops, there is a problem folding the email.<br> Please try it again. </center>'})};
-                                res.send({success: '<center>Email has been sent. <br> Please verify your email address.</center>'});
+                                res.send({success: '<center>Request has been sent. <br> Please check your email address.</center>'});
                                 console.log(info);
                             });
 
                         }
+
+                    } else {
+
+                        res.send({success: '<center>Request has been sent. <br> Please check your email address.</center>'});
                     }
 
                 });
@@ -260,6 +264,10 @@ module.exports = function(app){
         });
 
 
+    });
+
+    app.post('/api/resetpassword', function(req, res){
+        
     });
 
     /** GET API for user verification signup link */
@@ -359,7 +367,31 @@ module.exports = function(app){
 
         let clickResetLinkToken = req.query.token;
 
-        console.log(clickResetLinkToken);
+        if(clickResetLinkToken){
+
+            function verifyLinkToken(){
+                return new Promise(function(resolve, reject){
+
+                    jwt.verify(clickResetLinkToken, config.secret, function(err, decoded){
+                        if(err) {return res.status(200).render('resettoken_expired')};
+        
+                        let resetClaim = decoded.claim;
+                        
+                        resolve(resetClaim);
+                    });
+
+                });
+                
+            }
+
+            verifyLinkToken().then(function(resetClaim){
+
+                res.render('resetpassword', { email: resetClaim.email });
+
+            });
+
+
+        }
 
     });
 
